@@ -1,7 +1,6 @@
 mod services;
 
 use services::exchange_rate::exchange_rate_service::ExchangeRateService;
-
 use dotenv::dotenv;
 use std::env;
 
