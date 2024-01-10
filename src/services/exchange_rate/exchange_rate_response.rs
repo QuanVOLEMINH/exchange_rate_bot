@@ -1,6 +1,7 @@
 use serde::de::Deserializer;
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fmt::Display;
 use std::hash::Hash;
 
 #[derive(Deserialize, Debug)]
@@ -18,6 +19,22 @@ pub enum Currency {
     PLN,
     USD,
     VND,
+}
+
+impl Display for Currency {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Currency::GBP => "GBP",
+                Currency::EUR => "EUR",
+                Currency::PLN => "PLN",
+                Currency::USD => "USD",
+                Currency::VND => "VND",
+            }
+        )
+    }
 }
 
 impl TryFrom<&str> for Currency {
@@ -46,4 +63,30 @@ where
         .collect();
 
     Ok(filtered_map)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_exchange_rate_response_deserialization() {
+        let json = r#"
+        {
+            "result": "success",
+            "base_code": "GBP",
+            "conversion_rates": {
+                "EUR": 1.1,
+                "USD": 1.2,
+                "Unknown": 0.0
+            }
+        }
+        "#;
+
+        let response: ExchangeRateResponse = serde_json::from_str(json).unwrap();
+
+        assert_eq!(response.result, "success");
+        assert!(response.conversion_rates.contains_key(&Currency::EUR));
+        assert!(response.conversion_rates.contains_key(&Currency::USD));
+    }
 }
